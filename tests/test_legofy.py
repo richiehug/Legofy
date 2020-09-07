@@ -55,7 +55,7 @@ class Create(unittest.TestCase):
         out = self.out_path
         legofy.main(FLOWER_PATH, output_path=out, palette_mode='solid')
         legofy.main(FLOWER_PATH, output_path=out, palette_mode='transparent')
-        legofy.main(FLOWER_PATH, output_path=out, palette_mode='effects')
+        legofy.main(FLOWER_PATH, output_path=out, palette_mode='special')
         legofy.main(FLOWER_PATH, output_path=out, palette_mode='mono')
         legofy.main(FLOWER_PATH, output_path=out, palette_mode='all')
         self.assertTrue(os.path.getsize(out) > 0)

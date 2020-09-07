@@ -12,7 +12,6 @@ else:
     import legofy.images2gif_py3 as images2gif
 from legofy import palettes
 
-
 def apply_color_overlay(image, color):
     '''Small function to apply an effect over an entire image'''
     overlay_red, overlay_green, overlay_blue = color
@@ -21,7 +20,6 @@ def apply_color_overlay(image, color):
     r = channels[0].point(lambda color: overlay_effect(color, overlay_red))
     g = channels[1].point(lambda color: overlay_effect(color, overlay_green))
     b = channels[2].point(lambda color: overlay_effect(color, overlay_blue))
-
 
     channels[0].paste(r)
     channels[1].paste(g)
@@ -55,7 +53,6 @@ def make_lego_image(thumbnail_image, brick_image):
                              (brick_x * brick_width, brick_y * brick_height))
     return lego_image
 
-
 def get_new_filename(file_path, ext_override=None):
     '''Returns the save destination file path'''
     folder, basename = os.path.split(file_path)
@@ -64,7 +61,6 @@ def get_new_filename(file_path, ext_override=None):
         extention = ext_override
     new_filename = os.path.join(folder, "{0}_lego{1}".format(base, extention))
     return new_filename
-
 
 def get_new_size(base_image, brick_image, size=None):
     '''Returns a new size the first image should be so that the second one fits neatly in the longest axis'''
@@ -90,7 +86,6 @@ def get_lego_palette(palette_mode):
     legos = palettes.legos()
     palette = legos[palette_mode]
     return palettes.extend_palette(palette)
-
 
 def apply_thumbnail_effects(image, palette, dither):
     '''Apply effects on the reduced image before Legofying'''
@@ -130,7 +125,7 @@ def legofy_gif(base_image, brick_image, output_path, size, palette_mode, dither)
     # Make use of images to gif function
     images2gif.writeGif(output_path, frames_converted, duration=original_duration/1000.0, dither=0, subRectangles=False)
 
-def legofy_image(base_image, brick_image, output_path, size, palette_mode, dither):
+def legofy_image(base_image, brick_image, output_path, size, palette_mode, dither, max_resize):
     '''Legofy an image'''
     new_size = get_new_size(base_image, brick_image, size)
     base_image.thumbnail(new_size, Image.ANTIALIAS)
@@ -138,18 +133,22 @@ def legofy_image(base_image, brick_image, output_path, size, palette_mode, dithe
         palette = get_lego_palette(palette_mode)
         base_image = apply_thumbnail_effects(base_image, palette, dither)
     make_lego_image(base_image, brick_image).save(output_path)
-
+    if max_resize is not None:
+        image = Image.open(output_path)
+        image.thumbnail((max_resize,max_resize))
+        image.save(output_path)
 
 def main(image_path, output_path=None, size=None,
-         palette_mode=None, dither=False):
+         palette_mode=None, dither=False, high_res=False, max_resize=None):
     '''Legofy image or gif with brick_path mask'''
     image_path = os.path.realpath(image_path)
     if not os.path.isfile(image_path):
         print('Image file "{0}" was not found.'.format(image_path))
         sys.exit(1)
 
-    brick_path = os.path.join(os.path.dirname(__file__), "assets",
-                              "bricks", "1x1.png")
+    brickfile = "1x1.png"
+    if high_res == True: brickfile = "1x1-high.png"
+    brick_path = os.path.join(os.path.dirname(__file__), "assets", "bricks", brickfile)
 
     if not os.path.isfile(brick_path):
         print('Brick asset "{0}" was not found.'.format(brick_path))
@@ -172,7 +171,7 @@ def main(image_path, output_path=None, size=None,
         if output_path is None:
             output_path = get_new_filename(image_path, '.png')
         print("Static image detected, will now legofy to {0}".format(output_path))
-        legofy_image(base_image, brick_image, output_path, size, palette_mode, dither)
+        legofy_image(base_image, brick_image, output_path, size, palette_mode, dither, max_resize)
 
     base_image.close()
     brick_image.close()

@@ -3,7 +3,6 @@ import click
 import legofy
 from legofy import palettes
 
-
 @click.command()
 @click.argument('image', required=True, type=click.Path(dir_okay=False,
                                                         exists=True,
@@ -17,7 +16,11 @@ from legofy import palettes
 @click.option('--palette', default=None,
               type=click.Choice(palettes.legos().keys()),
               help='Palette to use based on real Lego colors.')
-def main(image, output, size, palette, dither):
+@click.option('--highres/--no-highres', default=False,
+              help='High resolution setting.')
+@click.option('--resize', default=None, type=int,
+              help='Resize to max width & length of image.')
+def main(image, output, size, palette, dither, highres, resize):
     '''Legofy an image!'''
     legofy.main(image, output_path=output, size=size,
-                palette_mode=palette, dither=dither)
+                palette_mode=palette, dither=dither, high_res=highres, max_resize=resize)
